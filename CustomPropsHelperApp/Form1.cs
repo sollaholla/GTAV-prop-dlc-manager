@@ -81,11 +81,11 @@ namespace CustomPropsHelperApp
 			if (archetype.textureDictionary != archetype.name)
 				texType = 1;
 
-			row.Cells[0].Value = archetype.name;
-			row.Cells[1].Value = ((DataGridViewComboBoxCell)row.Cells[1]).Items[texType];
-			row.Cells[2].Value = archetype.lodDist.value;
+			row.Cells["propName"].Value = archetype.name;
+			row.Cells["textureType"].Value = ((DataGridViewComboBoxCell)row.Cells["textureType"]).Items[texType];
+			row.Cells["lodDist"].Value = archetype.lodDist.value;
 
-			int flagType = 0;
+			int flagType;
 			switch (archetype.flags.value)
 			{
 				case 12713984:
@@ -99,8 +99,8 @@ namespace CustomPropsHelperApp
 					break;
 			}
 
-			var dataGridViewComboBoxCell = (DataGridViewComboBoxCell)row.Cells[3];
-			row.Cells[3].Value = flagType != -1
+			var dataGridViewComboBoxCell = (DataGridViewComboBoxCell)row.Cells["flags"];
+			row.Cells["flags"].Value = flagType != -1
 				? dataGridViewComboBoxCell.Items[flagType]
 				: dataGridViewComboBoxCell.Items[dataGridViewComboBoxCell.Items.Add(archetype.flags.value.ToString())];
 		}
@@ -245,13 +245,13 @@ namespace CustomPropsHelperApp
 			for (int i = 0; i < files.Length; i++)
 			{
 				var file = files[i];
-				var archetype = new CMapTypes.Item();
-				Map.archetypes.Add(archetype);
-				SetArchetypeDataFromRow(row, ref archetype);
-				archetype.name = Path.GetFileNameWithoutExtension(file);
-				if ((string)row.Cells[1].Value == "Embedded")
-					archetype.textureDictionary = archetype.name;
-				CreateRowFromArchetype(archetype, dataGridView1);
+				var item = new CMapTypes.Item();
+				Map.archetypes.Add(item);
+				SetArchetypeDataFromRow(row, ref item);
+				item.name = Path.GetFileNameWithoutExtension(file);
+				if (row.Cells["textureType"].Value.ToString() == "Embedded")
+					item.textureDictionary = item.name;
+				CreateRowFromArchetype(item, dataGridView1);
 			}
 
 			ddpf.Close();
@@ -543,7 +543,7 @@ namespace CustomPropsHelperApp
 		private void SetArchetypeDataFromRow(DataGridViewRow row, ref CMapTypes.Item item)
 		{
 			// Model name.
-			item.name = (string)row.Cells["propModel"].Value;
+			item.name = (string)row.Cells["propModel"].EditedFormattedValue;
 
 			// Texture type.
 			var textureCell = (DataGridViewComboBoxCell)row.Cells["textureType"];
@@ -559,7 +559,7 @@ namespace CustomPropsHelperApp
 			}
 
 			// Lod distance.
-			var lodDistCellValue = row.Cells["lodDist"].Value;
+			var lodDistCellValue = row.Cells["lodDist"].EditedFormattedValue;
 			var lodValueString = lodDistCellValue.ToString();
 			double dVal;
 			if (double.TryParse(lodValueString, out dVal))
