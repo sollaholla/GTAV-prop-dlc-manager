@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -60,7 +61,7 @@ namespace CustomPropsHelperApp
 				{
 					CreateRowFromArchetype(archetype, dataGridView1);
 				}
-				textBox1.Text = Map.name;
+				cMapNameTextBox.Text = Map.name;
 				_reading = false;
 			}
 			catch (Exception exception)
@@ -183,9 +184,21 @@ namespace CustomPropsHelperApp
 			if (_reading)
 				return;
 
-			Map.archetypes.Add(new CMapTypes.Item());
+			if (e.RowIndex == -1 || e.RowCount == 0)
+				return;
 
-			CollectData();
+			// Add a new archtype to the map.
+			var item = new CMapTypes.Item();
+			Map.archetypes.Add(item);
+
+			// Initialize the row with default values.
+			var row = dataGridView1.Rows[e.RowIndex - 1];
+			row.Cells["propModel"].Value = string.Empty;
+			row.Cells["textureType"].Value = ((DataGridViewComboBoxCell) row.Cells["textureType"]).Items[0];
+			row.Cells["lodDist"].Value = "100.0";
+			row.Cells["flags"].Value = ((DataGridViewComboBoxCell) row.Cells["flags"]).Items[0];
+
+			SetArchetypeDataFromRow(row, ref item);
 		}
 
 		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -263,7 +276,7 @@ namespace CustomPropsHelperApp
 
 		private void buildRPFToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			if (string.IsNullOrEmpty(textBox1.Text))
+			if (string.IsNullOrEmpty(cMapNameTextBox.Text))
 				MessageBox.Show("You must have a CMap Name specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
 			FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -286,7 +299,7 @@ namespace CustomPropsHelperApp
 			XmlDocument dummydoc = new XmlDocument();
 			XmlNode descNode =
 				dummydoc.CreateCDataSection("NOTE: If you don't want to lose default files, use mods folder." +
-				                            "\nThis installation changes **dlclist.xml**");
+											"\nThis installation changes **dlclist.xml**");
 
 			var assemblypath = fbd.SelectedPath + "\\assembly.xml";
 			package assembly = new package();
@@ -359,7 +372,7 @@ namespace CustomPropsHelperApp
 							{
 								new archive
 								{
-									path = $"x64\\levels\\gta5\\props\\{textBox1.Text}.rpf",
+									path = $"x64\\levels\\gta5\\props\\{cMapNameTextBox.Text}.rpf",
 									createIfNotExist = "True",
 									type = "RPF7"
 								}
@@ -406,7 +419,7 @@ namespace CustomPropsHelperApp
 				}
 			};
 			DefaultObjectSerialize(assemblypath, assembly);
-			
+
 
 			string properChangeSetName = $"{dlcname}_autogen".ToUpper();
 			// Create the content.xml for our dlc.
@@ -416,7 +429,7 @@ namespace CustomPropsHelperApp
 			{
 				new Item
 				{
-					filename = $"{filePrefix}:/%PLATFORM%/levels/gta5/props/{textBox1.Text}.rpf",
+					filename = $"{filePrefix}:/%PLATFORM%/levels/gta5/props/{cMapNameTextBox.Text}.rpf",
 					fileType = "RPF_FILE",
 					overlay = new[] { new ItemOverlay {value = "false"} },
 					disabled = new[] { new ItemDisabled { value = "true"} },
@@ -440,7 +453,7 @@ namespace CustomPropsHelperApp
 					{
 						new ItemFilesToEnableDlc
 						{
-							Value = $"{filePrefix}:/%PLATFORM%/levels/gta5/props/{textBox1.Text}.rpf"
+							Value = $"{filePrefix}:/%PLATFORM%/levels/gta5/props/{cMapNameTextBox.Text}.rpf"
 						},
 						new ItemFilesToEnableDlc
 						{
@@ -514,7 +527,7 @@ namespace CustomPropsHelperApp
 
 		private string GetPropDefName(string extension)
 		{
-			return "def_" + textBox1.Text + extension;
+			return "def_" + cMapNameTextBox.Text + extension;
 		}
 
 		private static void DefaultObjectSerialize<T>(string fileName, T obj)
@@ -529,27 +542,35 @@ namespace CustomPropsHelperApp
 
 		private void SetArchetypeDataFromRow(DataGridViewRow row, ref CMapTypes.Item item)
 		{
-			item.name = (string)row.Cells[0].Value;
-			switch ((string)((DataGridViewComboBoxCell)row.Cells[1]).Value)
+			// Model name.
+			item.name = (string)row.Cells["propModel"].Value;
+
+			// Texture type.
+			var textureCell = (DataGridViewComboBoxCell)row.Cells["textureType"];
+			var textureValueString = textureCell.EditedFormattedValue.ToString();
+			switch (textureValueString)
 			{
 				case "Embedded":
 					item.textureDictionary = item.name;
 					break;
 				case "External":
-					item.textureDictionary = Map.name;
+					item.textureDictionary = cMapNameTextBox.Text;
 					break;
 			}
-			var value = row.Cells[2]?.Value;
-			if (value != null)
+
+			// Lod distance.
+			var lodDistCellValue = row.Cells["lodDist"].Value;
+			var lodValueString = lodDistCellValue.ToString();
+			double dVal;
+			if (double.TryParse(lodValueString, out dVal))
 			{
-				double dVal;
-				if (double.TryParse(value.ToString(), out dVal))
-				{
-					item.lodDist.value = dVal;
-				}
+				item.lodDist.value = dVal;
 			}
 
-			switch ((string)((DataGridViewComboBoxCell)row.Cells[3]).Value)
+			// Collision flag.
+			var flagCell = (DataGridViewComboBoxCell)row.Cells["flags"];
+			var flagValueString = flagCell.EditedFormattedValue.ToString();
+			switch (flagValueString)
 			{
 				case "Dynamic":
 					item.flags.value = 12713984;
@@ -559,13 +580,13 @@ namespace CustomPropsHelperApp
 					break;
 				default:
 					int f;
-					if (int.TryParse(((DataGridViewComboBoxCell)row.Cells[3]).Value?.ToString(), out f))
-					{
+					if (int.TryParse(flagValueString, out f))
 						item.flags.value = f;
-					}
 					break;
 			}
-			item.physicsDictionary = textBox1.Text;
+
+			// Set the physics dictionary.
+			item.physicsDictionary = cMapNameTextBox.Text;
 		}
 
 		private void CollectData()
@@ -584,7 +605,7 @@ namespace CustomPropsHelperApp
 			if (diag.ShowDialog(this) != DialogResult.OK)
 				return;
 
-			Map.name = textBox1.Text;
+			Map.name = cMapNameTextBox.Text;
 			string path = diag.FileName;
 
 			Cursor.Current = Cursors.WaitCursor;
@@ -618,7 +639,9 @@ namespace CustomPropsHelperApp
 			}
 
 			File.WriteAllText(path, strBuilder.ToString());
-
+			var directoryName = Path.GetDirectoryName(path);
+			if (directoryName != null)
+				Process.Start(directoryName);
 			Cursor.Current = Cursors.Default;
 		}
 	}
