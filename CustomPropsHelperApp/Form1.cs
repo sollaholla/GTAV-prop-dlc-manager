@@ -559,7 +559,7 @@ namespace CustomPropsHelperApp
 					break;
 				default:
 					int f;
-					if (int.TryParse(((DataGridViewComboBoxCell)row.Cells[3]).Value.ToString(), out f))
+					if (int.TryParse(((DataGridViewComboBoxCell)row.Cells[3]).Value?.ToString(), out f))
 					{
 						item.flags.value = f;
 					}
