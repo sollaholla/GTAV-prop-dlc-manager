@@ -81,7 +81,7 @@ namespace CustomPropsHelperApp
 			if (archetype.textureDictionary != archetype.name)
 				texType = 1;
 
-			row.Cells["propName"].Value = archetype.name;
+			row.Cells["propModel"].Value = archetype.name;
 			row.Cells["textureType"].Value = ((DataGridViewComboBoxCell)row.Cells["textureType"]).Items[texType];
 			row.Cells["lodDist"].Value = archetype.lodDist.value;
 
