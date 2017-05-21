@@ -32,7 +32,7 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.presetDataGrid = new System.Windows.Forms.DataGridView();
 			this.doneButton = new System.Windows.Forms.Button();
-			this.propName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.propModel = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.textureType = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			this.lodDist = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.flags = new System.Windows.Forms.DataGridViewComboBoxColumn();
@@ -59,7 +59,7 @@
 			this.presetDataGrid.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
 			this.presetDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.presetDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.propName,
+            this.propModel,
             this.textureType,
             this.lodDist,
             this.flags});
@@ -83,12 +83,12 @@
 			this.doneButton.Text = "Done";
 			this.doneButton.UseVisualStyleBackColor = true;
 			// 
-			// propName
+			// propModel
 			// 
-			this.propName.HeaderText = "Prop Name";
-			this.propName.Name = "propName";
-			this.propName.ReadOnly = true;
-			this.propName.Visible = false;
+			this.propModel.HeaderText = "Prop Name";
+			this.propModel.Name = "propModel";
+			this.propModel.ReadOnly = true;
+			this.propModel.Visible = false;
 			// 
 			// textureType
 			// 
@@ -138,7 +138,7 @@
 		private System.Windows.Forms.Label label1;
 		public System.Windows.Forms.DataGridView presetDataGrid;
 		public System.Windows.Forms.Button doneButton;
-		private System.Windows.Forms.DataGridViewTextBoxColumn propName;
+		private System.Windows.Forms.DataGridViewTextBoxColumn propModel;
 		private System.Windows.Forms.DataGridViewComboBoxColumn textureType;
 		private System.Windows.Forms.DataGridViewTextBoxColumn lodDist;
 		private System.Windows.Forms.DataGridViewComboBoxColumn flags;
