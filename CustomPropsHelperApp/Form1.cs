@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -19,18 +17,20 @@ namespace CustomPropsHelperApp
 	{
 		public const string Header = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 
-		private bool _reading = false;
+		private bool _reading;
 
 		public Form1()
 		{
 			Map = new CMapTypes();
 			InitializeComponent();
 
-			var deleteButton = new DataGridViewButtonColumn();
-			deleteButton.Name = "dataGridViewDeleteButton";
-			deleteButton.HeaderText = "";
-			deleteButton.UseColumnTextForButtonValue = true;
-			deleteButton.Text = "Delete";
+			var deleteButton = new DataGridViewButtonColumn
+			{
+				Name = "dataGridViewDeleteButton",
+				HeaderText = "",
+				UseColumnTextForButtonValue = true,
+				Text = "Delete"
+			};
 			dataGridView1.Columns.Add(deleteButton);
 		}
 
@@ -39,7 +39,7 @@ namespace CustomPropsHelperApp
 		private void openXmlToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 
-			OpenFileDialog diag = new OpenFileDialog { SupportMultiDottedExtensions = true, Filter = "YTYP.XML files (*ytyp.xml)|*ytyp.xml", FileName = "def_props.ytyp.xml" };
+			OpenFileDialog diag = new OpenFileDialog { SupportMultiDottedExtensions = true, Filter = @"YTYP.XML files (*ytyp.xml)|*ytyp.xml", FileName = "def_props.ytyp.xml" };
 			if (diag.ShowDialog(this) != DialogResult.OK)
 				return;
 
@@ -67,42 +67,11 @@ namespace CustomPropsHelperApp
 			catch (Exception exception)
 			{
 				string val = string.Empty;
-				if (File.Exists("ErrorLog.log"))
-					val = File.ReadAllText("ErrorLog.log") + "\n";
-				File.WriteAllText("ErrorLog.log", val + $"[ERROR] [{DateTime.UtcNow:hh:mm:ss}]" + exception.Message + "\n" + exception.StackTrace);
+				if (File.Exists("Error.log"))
+					val = File.ReadAllText("Error.log") + "\n";
+				File.WriteAllText("ErrorLog.log", val + $@"[ERROR] [{DateTime.UtcNow:hh:mm:ss}]" + exception.Message + Environment.NewLine + exception.StackTrace);
 				throw;
 			}
-		}
-
-		private static void CreateRowFromArchetype(CMapTypes.Item archetype, DataGridView gridView)
-		{
-			var row = gridView.Rows[gridView.Rows.Add(1)];
-			int texType = 0;
-			if (archetype.textureDictionary != archetype.name)
-				texType = 1;
-
-			row.Cells["propModel"].Value = archetype.name;
-			row.Cells["textureDictionary"].Value = archetype.textureDictionary;
-			row.Cells["lodDist"].Value = archetype.lodDist.value;
-
-			int flagType;
-			switch (archetype.flags.value)
-			{
-				case 12713984:
-					flagType = 0;
-					break;
-				case 32:
-					flagType = 1;
-					break;
-				default:
-					flagType = -1;
-					break;
-			}
-
-			var dataGridViewComboBoxCell = (DataGridViewComboBoxCell)row.Cells["flags"];
-			row.Cells["flags"].Value = flagType != -1
-				? dataGridViewComboBoxCell.Items[flagType]
-				: dataGridViewComboBoxCell.Items[dataGridViewComboBoxCell.Items.Add(archetype.flags.value.ToString())];
 		}
 
 		private void exportToolStripMenuItem_Click(object sender, EventArgs e)
@@ -113,7 +82,7 @@ namespace CustomPropsHelperApp
 			// Then serialize the data.
 			Serialize();
 		}
-		
+
 		private void exportIPLFormatToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			// Collect all information that was previously changed!
@@ -125,23 +94,23 @@ namespace CustomPropsHelperApp
 
 		private void dataGridView1_DataError(object sender, DataGridViewDataErrorEventArgs e)
 		{
-			MessageBox.Show("Error happened " + e.Context);
+			MessageBox.Show(@"Error happened " + e.Context);
 
 			if (e.Context == DataGridViewDataErrorContexts.Commit)
 			{
-				MessageBox.Show("Commit error");
+				MessageBox.Show(@"Commit error");
 			}
 			if (e.Context == DataGridViewDataErrorContexts.CurrentCellChange)
 			{
-				MessageBox.Show("Cell change");
+				MessageBox.Show(@"Cell change");
 			}
 			if (e.Context == DataGridViewDataErrorContexts.Parsing)
 			{
-				MessageBox.Show("parsing error");
+				MessageBox.Show(@"parsing error");
 			}
 			if (e.Context == DataGridViewDataErrorContexts.LeaveControl)
 			{
-				MessageBox.Show("leave control error");
+				MessageBox.Show(@"leave control error");
 			}
 
 			if ((e.Exception) is ConstraintException)
@@ -161,11 +130,11 @@ namespace CustomPropsHelperApp
 		private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
 		{
 			//If this is header row or new row, do nothing
-			if (e.RowIndex < 0 || e.RowIndex == this.dataGridView1.NewRowIndex)
+			if (e.RowIndex < 0 || e.RowIndex == dataGridView1.NewRowIndex)
 				return;
 
 			//If formatting your desired column, set the value
-			var dataGridViewColumn = this.dataGridView1.Columns["dataGridViewDeleteButton"];
+			var dataGridViewColumn = dataGridView1.Columns["dataGridViewDeleteButton"];
 			if (dataGridViewColumn != null && e.ColumnIndex == dataGridViewColumn.Index)
 			{
 				e.Value = "Delete";
@@ -205,7 +174,7 @@ namespace CustomPropsHelperApp
 			row.Cells["propModel"].Value = string.Empty;
 			row.Cells["textureDictionary"].Value = string.Empty;
 			row.Cells["lodDist"].Value = "100.0";
-			row.Cells["flags"].Value = ((DataGridViewComboBoxCell) row.Cells["flags"]).Items[0];
+			row.Cells["flags"].Value = ((DataGridViewComboBoxCell)row.Cells["flags"]).Items[0];
 
 			SetArchetypeDataFromRow(row, ref item);
 		}
@@ -228,10 +197,8 @@ namespace CustomPropsHelperApp
 				return;
 			}
 
-			for (int i = 0; i < files.Length; i++)
+			foreach (var file in files)
 			{
-				var file = files[i];
-
 				var ext = Path.GetExtension(file);
 				if (ext != ".ydr")
 				{
@@ -262,9 +229,8 @@ namespace CustomPropsHelperApp
 			{
 				var path = files[0];
 				var lines = File.ReadAllLines(path);
-				for (int i = 0; i < lines.Length; i++)
+				foreach (var entry in lines)
 				{
-					var entry = lines[i];
 					var item = new CMapTypes.Item();
 					Map.archetypes.Add(item);
 					SetArchetypeDataFromRow(row, ref item);
@@ -276,13 +242,15 @@ namespace CustomPropsHelperApp
 				return;
 			}
 
-			for (int i = 0; i < files.Length; i++)
+			foreach (var entry in files)
 			{
-				var entry = files[i];
 				var item = new CMapTypes.Item();
 				Map.archetypes.Add(item);
 				SetArchetypeDataFromRow(row, ref item);
 				item.name = Path.GetFileNameWithoutExtension(entry);
+				item.textureDictionary = string.IsNullOrEmpty(row.Cells["textureDictionary"].EditedFormattedValue.ToString())
+					? item.name
+					: row.Cells["textureDictionary"].EditedFormattedValue.ToString();
 				CreateRowFromArchetype(item, dataGridView1);
 			}
 
@@ -309,10 +277,9 @@ namespace CustomPropsHelperApp
 		private void buildRPFToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			if (string.IsNullOrEmpty(cMapNameTextBox.Text))
-				MessageBox.Show("You must have a CMap Name specified!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(@"You must have a CMap Name specified!", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-			FolderBrowserDialog fbd = new FolderBrowserDialog();
-			fbd.Description = "Select an Output Directory.";
+			FolderBrowserDialog fbd = new FolderBrowserDialog { Description = @"Select an Output Directory." };
 			if (fbd.ShowDialog() != DialogResult.OK)
 				return;
 
@@ -320,7 +287,7 @@ namespace CustomPropsHelperApp
 
 			if (string.IsNullOrEmpty(dlcname) || dlcname.Any(ch => !char.IsLetterOrDigit(ch) || dlcname.Contains(' ')))
 			{
-				MessageBox.Show("Name not valid. Letters or numbers only.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(@"Name not valid. Letters or numbers only.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 			dlcname = dlcname.ToLower();
@@ -334,102 +301,104 @@ namespace CustomPropsHelperApp
 											"\nThis installation changes **dlclist.xml**");
 
 			var assemblypath = fbd.SelectedPath + "\\assembly.xml";
-			package assembly = new package();
-			assembly.version = "2.1";
-			assembly.id = "{" + Guid.NewGuid() + "}";
-			assembly.target = "Five";
-			assembly.metadata = new[]
+			package assembly = new package
 			{
-				new packageMetadata
+				version = "2.1",
+				id = "{" + Guid.NewGuid() + "}",
+				target = "Five",
+				metadata = new[]
 				{
-					name = "Custom Props DLC Installer",
-					version = new[]
+					new packageMetadata
 					{
-						new packageMetadataVersion
+						name = "Custom Props DLC Installer",
+						version = new[]
 						{
-							major = "0",
-							minor = "0"
-						}
-					},
-					author = new[]
-					{
-						new packageMetadataAuthor
-						{
-							displayName = "Sollaholla"
-						}
-					},
-					description = descNode
-				}
-			};
-			assembly.colors = new[]
-			{
-				new packageColors
-				{
-					headerBackground = new[]
-					{
-						new packageColorsHeaderBackground
-						{
-							useBlackTextColor = "true",
-							Value = "$00FFFFFF"
-						}
-					},
-					iconBackground = "$00FFFFFF"
-				}
-			};
-			assembly.content = new[]
-			{
-				new packageContent
-				{
-					archive = new []
-					{
-						new archive
-						{
-							path = $"update\\x64\\dlcpacks\\{dlcname}\\dlc.rpf",
-							createIfNotExist = "True",
-							type = "RPF7",
-							add = new []
+							new packageMetadataVersion
 							{
-								new archiveAdd
-								{
-									source = "content.xml",
-									Value = "content.xml"
-								},
-								new archiveAdd
-								{
-									source = "setup2.xml",
-									Value = "setup2.xml"
-								}
-							},
-							addedArchives = new []
-							{
-								new archive
-								{
-									path = $"x64\\levels\\gta5\\props\\{cMapNameTextBox.Text}.rpf",
-									createIfNotExist = "True",
-									type = "RPF7"
-								}
+								major = "0",
+								minor = "0"
 							}
 						},
-						new archive
+						author = new[]
 						{
-							path = "update\\update.rpf",
-							createIfNotExist = "False",
-							type = "RPF7",
-							xml = new []
+							new packageMetadataAuthor
 							{
-								new packageContentXml
+								displayName = "Sollaholla"
+							}
+						},
+						description = descNode
+					}
+				},
+				colors = new[]
+				{
+					new packageColors
+					{
+						headerBackground = new[]
+						{
+							new packageColorsHeaderBackground
+							{
+								useBlackTextColor = "true",
+								Value = "$00FFFFFF"
+							}
+						},
+						iconBackground = "$00FFFFFF"
+					}
+				},
+				content = new[]
+				{
+					new packageContent
+					{
+						archive = new[]
+						{
+							new archive
+							{
+								path = $"update\\x64\\dlcpacks\\{dlcname}\\dlc.rpf",
+								createIfNotExist = "True",
+								type = "RPF7",
+								add = new[]
 								{
-									path = "common\\data\\dlclist.xml",
-									add = new[]
+									new archiveAdd
 									{
-										new xmlAdd
+										source = "content.xml",
+										Value = "content.xml"
+									},
+									new archiveAdd
+									{
+										source = "setup2.xml",
+										Value = "setup2.xml"
+									}
+								},
+								addedArchives = new[]
+								{
+									new archive
+									{
+										path = $"x64\\levels\\gta5\\props\\{cMapNameTextBox.Text}.rpf",
+										createIfNotExist = "True",
+										type = "RPF7"
+									}
+								}
+							},
+							new archive
+							{
+								path = "update\\update.rpf",
+								createIfNotExist = "False",
+								type = "RPF7",
+								xml = new[]
+								{
+									new packageContentXml
+									{
+										path = "common\\data\\dlclist.xml",
+										add = new[]
 										{
-											xpath = "/SMandatoryPacksData/Paths",
-											item = new []
+											new xmlAdd
 											{
-												new xmlItem
+												xpath = "/SMandatoryPacksData/Paths",
+												item = new[]
 												{
-													Value = $"dlcpacks:\\{dlcname}\\"
+													new xmlItem
+													{
+														Value = $"dlcpacks:\\{dlcname}\\"
+													}
 												}
 											}
 										}
@@ -438,16 +407,6 @@ namespace CustomPropsHelperApp
 							}
 						}
 					}
-					//text = new []
-					//{
-					//	new packageContentText
-					//	{
-					//		add = "<Item>;dlcpacks:\\mycustomprops\\</Item>",
-					//		createIfNotExist = "False",
-					//		path = "update\\update.rpf\\common\\data\\dlclist.xml"
-					//	},
-
-					//}
 				}
 			};
 			DefaultObjectSerialize(assemblypath, assembly);
@@ -501,31 +460,33 @@ namespace CustomPropsHelperApp
 
 
 			// Create the setup2.xml
-			SSetupData ssetupdata = new SSetupData();
-			ssetupdata.deviceName = filePrefix;
-			ssetupdata.datFile = "content.xml";
-			ssetupdata.timeStamp = $"{DateTime.UtcNow:g}";
-			ssetupdata.nameHash = dlcname;
-			ssetupdata.contentChangeSetGroups = new[]
+			SSetupData ssetupdata = new SSetupData
 			{
-				new SSetupDataContentChangeSetGroupsItem
+				deviceName = filePrefix,
+				datFile = "content.xml",
+				timeStamp = $"{DateTime.UtcNow:g}",
+				nameHash = dlcname,
+				contentChangeSetGroups = new[]
 				{
-					NameHash = "GROUP_STARTUP",
-					ContentChangeSets = new []
+					new SSetupDataContentChangeSetGroupsItem
 					{
-						new SSetupDataContentChangeSetGroupsItemContentChangeSets
+						NameHash = "GROUP_STARTUP",
+						ContentChangeSets = new[]
 						{
-							Item = properChangeSetName
+							new SSetupDataContentChangeSetGroupsItemContentChangeSets
+							{
+								Item = properChangeSetName
+							}
 						}
 					}
-				}
+				},
+				scriptCallstackSize = new[] { new SSetupDataScriptCallstackSize { value = "0" } },
+				type = "EXTRACONTENT_COMPAT_PACK",
+				order = new[] { new SSetupDataOrder { value = "25" } },
+				minorOrder = new[] { new SSetupDataMinorOrder { value = "0" } },
+				isLevelPack = new[] { new SSetupDataIsLevelPack { value = "false" } },
+				subPackCount = new[] { new SSetupDataSubPackCount { value = "0" } }
 			};
-			ssetupdata.scriptCallstackSize = new[] { new SSetupDataScriptCallstackSize { value = "0" } };
-			ssetupdata.type = "EXTRACONTENT_COMPAT_PACK";
-			ssetupdata.order = new[] { new SSetupDataOrder { value = "25" } };
-			ssetupdata.minorOrder = new[] { new SSetupDataMinorOrder { value = "0" } };
-			ssetupdata.isLevelPack = new[] { new SSetupDataIsLevelPack { value = "false" } };
-			ssetupdata.subPackCount = new[] { new SSetupDataSubPackCount { value = "0" } };
 			var setup2XmlPath = fbd.SelectedPath + "\\setup2.xml";
 			DefaultObjectSerialize(setup2XmlPath, ssetupdata);
 
@@ -554,15 +515,10 @@ namespace CustomPropsHelperApp
 					Directory.Delete(oivContentFolder);
 			}
 
-			MessageBox.Show("Created DLC Installer", "DLC Directory Creator", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show(@"Created DLC Installer", @"DLC Directory Creator", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 
-		private string GetPropDefName(string extension)
-		{
-			return "def_" + cMapNameTextBox.Text + extension;
-		}
-
-		private static void DefaultObjectSerialize<T>(string fileName, T obj)
+		private void DefaultObjectSerialize<T>(string fileName, T obj)
 		{
 			var serializer = new XmlSerializer(typeof(T));
 			var writer = new StreamWriter(fileName);
@@ -572,6 +528,33 @@ namespace CustomPropsHelperApp
 			writer.Close();
 		}
 
+		private void CreateRowFromArchetype(CMapTypes.Item archetype, DataGridView gridView)
+		{
+			var row = gridView.Rows[gridView.Rows.Add(1)];
+			row.Cells["propModel"].Value = archetype.name;
+			row.Cells["textureDictionary"].Value = archetype.textureDictionary;
+			row.Cells["lodDist"].Value = archetype.lodDist.value;
+
+			int flagType;
+			switch (archetype.flags.value)
+			{
+				case 12713984:
+					flagType = 0;
+					break;
+				case 32:
+					flagType = 1;
+					break;
+				default:
+					flagType = -1;
+					break;
+			}
+
+			var dataGridViewComboBoxCell = (DataGridViewComboBoxCell)row.Cells["flags"];
+			row.Cells["flags"].Value = flagType != -1
+				? dataGridViewComboBoxCell.Items[flagType]
+				: dataGridViewComboBoxCell.Items[dataGridViewComboBoxCell.Items.Add(archetype.flags.value.ToString())];
+		}
+
 		private void SetArchetypeDataFromRow(DataGridViewRow row, ref CMapTypes.Item item)
 		{
 			// Model name.
@@ -579,7 +562,9 @@ namespace CustomPropsHelperApp
 			item.assetName = item.name;
 
 			// Dictionaries.
-			item.textureDictionary = row.Cells["textureDictionary"].ToString();
+			item.textureDictionary = string.IsNullOrEmpty(row.Cells["textureDictionary"].EditedFormattedValue.ToString())
+				? item.name
+				: row.Cells["textureDictionary"].EditedFormattedValue.ToString();
 			item.physicsDictionary = cMapNameTextBox.Text;
 
 			// Lod distance.
@@ -658,8 +643,8 @@ namespace CustomPropsHelperApp
 			item.physicsDictionary = item.name;
 
 			// Bounds.
-			item.bbMin = new XmlV3 {x = -3000, y = -3000, z = -3000};
-			item.bbMax = new XmlV3 {x = 3000, y = 3000, z = 3000};
+			item.bbMin = new XmlV3 { x = -3000, y = -3000, z = -3000 };
+			item.bbMax = new XmlV3 { x = 3000, y = 3000, z = 3000 };
 		}
 
 		private void CollectData(bool iplFormat)
@@ -691,11 +676,13 @@ namespace CustomPropsHelperApp
 			XmlSerializer s = new XmlSerializer(typeof(CMapTypes));
 			using (FileStream fs = new FileStream(path, FileMode.Create))
 			{
-				XmlWriterSettings settings = new XmlWriterSettings();
-				settings.Encoding = Encoding.UTF8;
-				settings.NewLineChars = Environment.NewLine;
-				settings.ConformanceLevel = ConformanceLevel.Document;
-				settings.Indent = true;
+				XmlWriterSettings settings = new XmlWriterSettings
+				{
+					Encoding = Encoding.UTF8,
+					NewLineChars = Environment.NewLine,
+					ConformanceLevel = ConformanceLevel.Document,
+					Indent = true
+				};
 				XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
 				ns.Add("", "");
 				using (XmlWriter writer = XmlWriter.Create(fs, settings))
@@ -705,6 +692,11 @@ namespace CustomPropsHelperApp
 				fs.Close();
 			}
 			Cursor.Current = Cursors.Default;
+		}
+
+		private string GetPropDefName(string extension)
+		{
+			return "def_" + cMapNameTextBox.Text + extension;
 		}
 	}
 }
