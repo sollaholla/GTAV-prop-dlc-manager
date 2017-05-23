@@ -33,7 +33,7 @@
 			this.presetDataGrid = new System.Windows.Forms.DataGridView();
 			this.doneButton = new System.Windows.Forms.Button();
 			this.propModel = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.textureType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+			this.textureDictionary = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.lodDist = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.flags = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			((System.ComponentModel.ISupportInitialize)(this.presetDataGrid)).BeginInit();
@@ -60,7 +60,7 @@
 			this.presetDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.presetDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.propModel,
-            this.textureType,
+            this.textureDictionary,
             this.lodDist,
             this.flags});
 			this.presetDataGrid.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -90,14 +90,14 @@
 			this.propModel.ReadOnly = true;
 			this.propModel.Visible = false;
 			// 
-			// textureType
+			// textureDictionary
 			// 
-			this.textureType.FillWeight = 109.1371F;
-			this.textureType.HeaderText = "Textures";
-			this.textureType.Items.AddRange(new object[] {
-            "Embedded",
-            "External"});
-			this.textureType.Name = "textureType";
+			this.textureDictionary.FillWeight = 109.1371F;
+			this.textureDictionary.HeaderText = "Texture Dict";
+			this.textureDictionary.Name = "textureDictionary";
+			this.textureDictionary.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.textureDictionary.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+			this.textureDictionary.ToolTipText = "Leave this blank if you wish to use the prop name as the texture dictionary.";
 			// 
 			// lodDist
 			// 
@@ -139,7 +139,7 @@
 		public System.Windows.Forms.DataGridView presetDataGrid;
 		public System.Windows.Forms.Button doneButton;
 		private System.Windows.Forms.DataGridViewTextBoxColumn propModel;
-		private System.Windows.Forms.DataGridViewComboBoxColumn textureType;
+		private System.Windows.Forms.DataGridViewTextBoxColumn textureDictionary;
 		private System.Windows.Forms.DataGridViewTextBoxColumn lodDist;
 		private System.Windows.Forms.DataGridViewComboBoxColumn flags;
 	}

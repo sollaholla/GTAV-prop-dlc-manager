@@ -82,7 +82,7 @@ namespace CustomPropsHelperApp
 				texType = 1;
 
 			row.Cells["propModel"].Value = archetype.name;
-			row.Cells["textureType"].Value = ((DataGridViewComboBoxCell)row.Cells["textureType"]).Items[texType];
+			row.Cells["textureDictionary"].Value = archetype.textureDictionary;
 			row.Cells["lodDist"].Value = archetype.lodDist.value;
 
 			int flagType;
@@ -108,7 +108,16 @@ namespace CustomPropsHelperApp
 		private void exportToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			// Collect all information that was previously changed!
-			CollectData();
+			CollectData(false);
+
+			// Then serialize the data.
+			Serialize();
+		}
+		
+		private void exportIPLFormatToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			// Collect all information that was previously changed!
+			CollectData(true);
 
 			// Then serialize the data.
 			Serialize();
@@ -194,7 +203,7 @@ namespace CustomPropsHelperApp
 			// Initialize the row with default values.
 			var row = dataGridView1.Rows[e.RowIndex - 1];
 			row.Cells["propModel"].Value = string.Empty;
-			row.Cells["textureType"].Value = ((DataGridViewComboBoxCell) row.Cells["textureType"]).Items[0];
+			row.Cells["textureDictionary"].Value = string.Empty;
 			row.Cells["lodDist"].Value = "100.0";
 			row.Cells["flags"].Value = ((DataGridViewComboBoxCell) row.Cells["flags"]).Items[0];
 
@@ -213,11 +222,18 @@ namespace CustomPropsHelperApp
 			if (files == null)
 				return;
 
+			if (files.Length == 1 && files[0].EndsWith(".txt"))
+			{
+				e.Effect = DragDropEffects.Copy;
+				return;
+			}
+
 			for (int i = 0; i < files.Length; i++)
 			{
 				var file = files[i];
 
-				if (Path.GetExtension(file) != ".ydr")
+				var ext = Path.GetExtension(file);
+				if (ext != ".ydr")
 				{
 					e.Effect = DragDropEffects.None;
 					return;
@@ -242,15 +258,31 @@ namespace CustomPropsHelperApp
 			if (ddpf.ShowDialog() != DialogResult.OK)
 				return;
 
+			if (files.Length == 1 && files[0].EndsWith(".txt"))
+			{
+				var path = files[0];
+				var lines = File.ReadAllLines(path);
+				for (int i = 0; i < lines.Length; i++)
+				{
+					var entry = lines[i];
+					var item = new CMapTypes.Item();
+					Map.archetypes.Add(item);
+					SetArchetypeDataFromRow(row, ref item);
+					item.name = entry;
+					item.textureDictionary = item.name;
+					CreateRowFromArchetype(item, dataGridView1);
+				}
+
+				return;
+			}
+
 			for (int i = 0; i < files.Length; i++)
 			{
-				var file = files[i];
+				var entry = files[i];
 				var item = new CMapTypes.Item();
 				Map.archetypes.Add(item);
 				SetArchetypeDataFromRow(row, ref item);
-				item.name = Path.GetFileNameWithoutExtension(file);
-				if (row.Cells["textureType"].Value.ToString() == "Embedded")
-					item.textureDictionary = item.name;
+				item.name = Path.GetFileNameWithoutExtension(entry);
 				CreateRowFromArchetype(item, dataGridView1);
 			}
 
@@ -544,19 +576,11 @@ namespace CustomPropsHelperApp
 		{
 			// Model name.
 			item.name = (string)row.Cells["propModel"].EditedFormattedValue;
+			item.assetName = item.name;
 
-			// Texture type.
-			var textureCell = (DataGridViewComboBoxCell)row.Cells["textureType"];
-			var textureValueString = textureCell.EditedFormattedValue.ToString();
-			switch (textureValueString)
-			{
-				case "Embedded":
-					item.textureDictionary = item.name;
-					break;
-				case "External":
-					item.textureDictionary = cMapNameTextBox.Text;
-					break;
-			}
+			// Dictionaries.
+			item.textureDictionary = row.Cells["textureDictionary"].ToString();
+			item.physicsDictionary = cMapNameTextBox.Text;
 
 			// Lod distance.
 			var lodDistCellValue = row.Cells["lodDist"].EditedFormattedValue;
@@ -587,21 +611,75 @@ namespace CustomPropsHelperApp
 
 			// Set the physics dictionary.
 			item.physicsDictionary = cMapNameTextBox.Text;
+
+			// Bounds.
+			item.bbMin = new XmlV3 { x = -100, y = -100, z = -100 };
+			item.bbMax = new XmlV3 { x = 100, y = 100, z = 100 };
 		}
 
-		private void CollectData()
+		private void SetArchetypeDataFromRow2(DataGridViewRow row, ref CMapTypes.Item item)
+		{
+			// Model name.
+			item.name = (string)row.Cells["propModel"].EditedFormattedValue;
+			item.name = item.name.ToLower();
+			item.assetName = item.name;
+
+			// Texture type.
+			item.textureDictionary = string.Empty;
+
+			// Lod distance.
+			var lodDistCellValue = row.Cells["lodDist"].EditedFormattedValue;
+			var lodValueString = lodDistCellValue.ToString();
+			double dVal;
+			if (double.TryParse(lodValueString, out dVal))
+			{
+				item.lodDist.value = dVal;
+			}
+
+			// Collision flag.
+			var flagCell = (DataGridViewComboBoxCell)row.Cells["flags"];
+			var flagValueString = flagCell.EditedFormattedValue.ToString();
+			switch (flagValueString)
+			{
+				case "Dynamic":
+					item.flags.value = 12713984;
+					break;
+				case "Static":
+					item.flags.value = 32;
+					break;
+				default:
+					int f;
+					if (int.TryParse(flagValueString, out f))
+						item.flags.value = f;
+					break;
+			}
+
+			// Set the physics dictionary.
+			item.physicsDictionary = item.name;
+
+			// Bounds.
+			item.bbMin = new XmlV3 {x = -3000, y = -3000, z = -3000};
+			item.bbMax = new XmlV3 {x = 3000, y = 3000, z = 3000};
+		}
+
+		private void CollectData(bool iplFormat)
 		{
 			for (int i = 0; i < dataGridView1.Rows.Count - 1; i++)
 			{
 				var row = dataGridView1.Rows[i];
 				var item = Map.archetypes[i];
-				SetArchetypeDataFromRow(row, ref item);
+				if (!iplFormat)
+				{
+					SetArchetypeDataFromRow(row, ref item);
+					continue;
+				}
+				SetArchetypeDataFromRow2(row, ref item);
 			}
 		}
 
 		private void Serialize()
 		{
-			SaveFileDialog diag = new SaveFileDialog { SupportMultiDottedExtensions = true, Filter = "YTYP.XML files (*ytyp.xml)|*ytyp.xml", FileName = GetPropDefName(".ytyp.xml") };
+			SaveFileDialog diag = new SaveFileDialog { SupportMultiDottedExtensions = true, Filter = @"YTYP.XML files (*ytyp.xml)|*ytyp.xml", FileName = GetPropDefName(".ytyp.xml") };
 			if (diag.ShowDialog(this) != DialogResult.OK)
 				return;
 
@@ -626,22 +704,6 @@ namespace CustomPropsHelperApp
 				}
 				fs.Close();
 			}
-			var text = File.ReadAllLines(path);
-			var strBuilder = new StringBuilder();
-			for (var index = 0; index < text.Length; index++)
-			{
-				if (index == 0)
-				{
-					text[index] = Header;
-				}
-				text[index] = text[index].Replace(" />", "/>");
-				strBuilder.AppendLine(text[index]);
-			}
-
-			File.WriteAllText(path, strBuilder.ToString());
-			var directoryName = Path.GetDirectoryName(path);
-			if (directoryName != null)
-				Process.Start(directoryName);
 			Cursor.Current = Cursors.Default;
 		}
 	}

@@ -35,13 +35,14 @@
 			this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.openArchiveRPFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.exportIPLFormatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.buildRPFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.cMapNameTextBox = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.propModel = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.textureType = new System.Windows.Forms.DataGridViewComboBoxColumn();
+			this.textureDictionary = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.lodDist = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.flags = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -58,7 +59,7 @@
 			this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.propModel,
-            this.textureType,
+            this.textureDictionary,
             this.lodDist,
             this.flags});
 			this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -95,6 +96,7 @@
             this.newToolStripMenuItem,
             this.openArchiveRPFToolStripMenuItem,
             this.exportToolStripMenuItem,
+            this.exportIPLFormatToolStripMenuItem,
             this.exitToolStripMenuItem});
 			this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
 			this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -103,28 +105,35 @@
 			// newToolStripMenuItem
 			// 
 			this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-			this.newToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+			this.newToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.newToolStripMenuItem.Text = "New";
 			this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
 			// 
 			// openArchiveRPFToolStripMenuItem
 			// 
 			this.openArchiveRPFToolStripMenuItem.Name = "openArchiveRPFToolStripMenuItem";
-			this.openArchiveRPFToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+			this.openArchiveRPFToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.openArchiveRPFToolStripMenuItem.Text = "Open";
 			this.openArchiveRPFToolStripMenuItem.Click += new System.EventHandler(this.openXmlToolStripMenuItem_Click);
 			// 
 			// exportToolStripMenuItem
 			// 
 			this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-			this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+			this.exportToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.exportToolStripMenuItem.Text = "Export";
 			this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
+			// 
+			// exportIPLFormatToolStripMenuItem
+			// 
+			this.exportIPLFormatToolStripMenuItem.Name = "exportIPLFormatToolStripMenuItem";
+			this.exportIPLFormatToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+			this.exportIPLFormatToolStripMenuItem.Text = "Export IPL Format";
+			this.exportIPLFormatToolStripMenuItem.Click += new System.EventHandler(this.exportIPLFormatToolStripMenuItem_Click);
 			// 
 			// exitToolStripMenuItem
 			// 
 			this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-			this.exitToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+			this.exitToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.exitToolStripMenuItem.Text = "Exit";
 			this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
 			// 
@@ -172,16 +181,12 @@
 			this.propModel.HeaderText = "Prop Model";
 			this.propModel.Name = "propModel";
 			// 
-			// textureType
+			// textureDictionary
 			// 
-			this.textureType.DisplayStyle = System.Windows.Forms.DataGridViewComboBoxDisplayStyle.ComboBox;
-			this.textureType.FillWeight = 109.1371F;
-			this.textureType.HeaderText = "Textures";
-			this.textureType.Items.AddRange(new object[] {
-            "Embedded",
-            "External"});
-			this.textureType.Name = "textureType";
-			this.textureType.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+			this.textureDictionary.FillWeight = 109.1371F;
+			this.textureDictionary.HeaderText = "Texture Dict";
+			this.textureDictionary.Name = "textureDictionary";
+			this.textureDictionary.Resizable = System.Windows.Forms.DataGridViewTriState.True;
 			// 
 			// lodDist
 			// 
@@ -234,8 +239,9 @@
 		private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem buildRPFToolStripMenuItem;
 		private System.Windows.Forms.TextBox cMapNameTextBox;
+		private System.Windows.Forms.ToolStripMenuItem exportIPLFormatToolStripMenuItem;
 		private System.Windows.Forms.DataGridViewTextBoxColumn propModel;
-		private System.Windows.Forms.DataGridViewComboBoxColumn textureType;
+		private System.Windows.Forms.DataGridViewTextBoxColumn textureDictionary;
 		private System.Windows.Forms.DataGridViewTextBoxColumn lodDist;
 		private System.Windows.Forms.DataGridViewComboBoxColumn flags;
 	}
